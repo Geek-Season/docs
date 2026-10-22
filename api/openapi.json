@@ -345,6 +345,11 @@
         ],
         "summary": "Update Task",
         "operationId": "update_task_tasks__task_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "task_id",
@@ -396,6 +401,11 @@
         "summary": "Delete Task",
         "description": "Задача переносится в архив и пропадает из списков.",
         "operationId": "delete_task_tasks__task_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "task_id",
@@ -482,6 +492,54 @@
         }
       }
     },
+    "/tasks/{task_id}/admin": {
+      "get": {
+        "tags": [
+          "Задачи"
+        ],
+        "summary": "Get Task Admin",
+        "description": "Задача целиком — с ответом и разбором. Для редактора.",
+        "operationId": "get_task_admin_tasks__task_id__admin_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskAdminRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tasks": {
       "post": {
         "tags": [
@@ -520,7 +578,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/me/stats": {
@@ -2014,6 +2077,14 @@
             ],
             "title": "Username"
           },
+          "role": {
+            "type": "string",
+            "enum": [
+              "student",
+              "admin"
+            ],
+            "title": "Role"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -2026,6 +2097,7 @@
           "first_name",
           "last_name",
           "username",
+          "role",
           "created_at"
         ],
         "title": "UserRead"
