@@ -42,7 +42,6 @@ Kanban-доска: GitHub Projects — _ссылка_ · Макеты: Figma —
 | [Контракты API](api/README.md) | Все адреса API; полная схема — [openapi.json](api/openapi.json) |
 | [Roadmap и график](plan/roadmap.md) | Что сделано, что дальше, кто отвечает |
 | [Бэклог для Kanban](plan/backlog.md) | Задачи для доски |
-| [Сценарий демонстрации](plan/demo.md) | Как показывать приложение и что могут спросить |
 
 ## Состояние на 22.10.2026
 
@@ -67,5 +66,4 @@ Kanban-доска: GitHub Projects — _ссылка_ · Макеты: Figma —
 Python 3.12 · FastAPI · Pydantic 2 · SQLAlchemy 2 · Alembic · PostgreSQL 16 · Redis 7 ·
 aiogram 3 · RabbitMQ 3.13 (pika) · PyJWT · React 18 · Vite · Docker Compose · Mermaid.
 
-> Python вместо ASP.NET Core, Redis и RabbitMQ согласуются с преподавателем.
 > Обоснование — в [бизнес-требованиях](requirements/business-requirements.md#7-технологический-стек).
