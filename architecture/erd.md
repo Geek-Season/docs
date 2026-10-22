@@ -17,11 +17,11 @@
 | Ответ в пробнике | `exam_answers` | Позиция варианта: задача, баллы за неё, ответ ученика | ✅ |
 | Вариант репетитора | `exam_variants` | Сохранённый вариант, собранный репетитором | план |
 | Задача варианта | `variant_tasks` | Связь вариант ↔ задача | план (служебная) |
-| Достижение | `achievements` | «7 дней подряд», «100 задач» | план |
-| Полученное достижение | `user_achievements` | Связь ученик ↔ достижение | план (служебная) |
-| Уведомление | `notifications` | Сообщение пользователю (и в Telegram) | план |
+| Достижение | `achievements` | Справочник: «Первый шаг», «Неделя без пропусков»… | ✅ |
+| Полученное достижение | `user_achievements` | Связь ученик ↔ достижение, дата | ✅ (служебная) |
+| Уведомление | `notifications` | Сообщение ученику и статус отправки в Telegram | ✅ |
 
-Итого 15 таблиц (6 уже в базе), из них **11 — объекты реального мира** (требование лабы: ≥ 10 таблиц, ≥ 7 реальных объектов).
+Итого 15 таблиц (9 уже в базе), из них **11 — объекты реального мира** (требование лабы: ≥ 10 таблиц, ≥ 7 реальных объектов).
 
 ## Схема
 
@@ -144,22 +144,26 @@ erDiagram
         timestamptz updated_at
     }
     achievements {
-        int id PK
-        string code UK
+        string code PK "first_solve, streak_7…"
         string title
+        string description
+        string icon
+        int position
     }
     user_achievements {
         int user_id PK, FK
-        int achievement_id PK, FK
+        string achievement_code PK, FK
         timestamptz received_at
     }
     notifications {
         int id PK
         int user_id FK
-        string kind
+        string event_id UK "одно событие — одно уведомление"
+        string kind "achievement.granted | exam.finished"
         text text
-        bool is_read
         timestamptz created_at
+        timestamptz sent_at "nullable"
+        string error "nullable: почему не ушло"
     }
 ```
 

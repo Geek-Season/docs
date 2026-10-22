@@ -3,7 +3,7 @@
   "info": {
     "title": "Geek Season",
     "description": "Подготовка к ЕГЭ по информатике: банк номеров, прототипы и проверка ответов.",
-    "version": "0.5.0"
+    "version": "0.6.0"
   },
   "paths": {
     "/auth/telegram/start": {
@@ -930,6 +930,68 @@
         }
       }
     },
+    "/me/achievements": {
+      "get": {
+        "tags": [
+          "Достижения"
+        ],
+        "summary": "My Achievements",
+        "description": "Все достижения: полученные — с датой, остальные — с received_at = null.\n\nВыдаёт их фоновый воркер по событиям из RabbitMQ, обычно в течение секунды.",
+        "operationId": "my_achievements_me_achievements_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AchievementRead"
+                  },
+                  "type": "array",
+                  "title": "Response My Achievements Me Achievements Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/me/notifications": {
+      "get": {
+        "tags": [
+          "Уведомления"
+        ],
+        "summary": "My Notifications",
+        "description": "Последние 20 уведомлений: и отправленные в Telegram, и те, что отправить не удалось.",
+        "operationId": "my_notifications_me_notifications_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationRead"
+                  },
+                  "type": "array",
+                  "title": "Response My Notifications Me Notifications Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -952,6 +1014,47 @@
   },
   "components": {
     "schemas": {
+      "AchievementRead": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "received_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "icon",
+          "title",
+          "description",
+          "received_at"
+        ],
+        "title": "AchievementRead"
+      },
       "AnswerResult": {
         "properties": {
           "task_id": {
@@ -1475,6 +1578,60 @@
           "points"
         ],
         "title": "MyPlace"
+      },
+      "NotificationRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "text",
+          "created_at",
+          "sent_at",
+          "error"
+        ],
+        "title": "NotificationRead"
       },
       "NumberProgress": {
         "properties": {

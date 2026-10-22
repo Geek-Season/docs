@@ -54,6 +54,23 @@
 |---|---|---|---|---|
 | GET | `/rating?period=week` или `all` | ◐ | Топ-20; вошедшему — его место в поле `me` | 200, 422 |
 
+## Достижения и уведомления
+
+| Метод | Адрес | | Что делает | Ответы |
+|---|---|---|---|---|
+| GET | `/me/achievements` | 🔒 | Все 8 достижений: `received_at` — дата получения или `null` | 200 |
+| GET | `/me/notifications` | 🔒 | Последние уведомления: текст, `sent_at` или `error` | 200 |
+
+Достижения выдаёт не API, а фоновый воркер по событиям из RabbitMQ:
+
+| Событие | Кто публикует | Поля | Очереди |
+|---|---|---|---|
+| `task.answered` | `POST /tasks/{id}/check` (вошедший) | `user_id, task_id, is_correct, first_solve` | achievements |
+| `exam.finished` | `POST /exam/{id}/finish` | `user_id, session_id, primary_score, max_score, test_score` | achievements, notifications |
+| `achievement.granted` | воркер | `user_id, code, icon, title, description` | notifications |
+
+В каждом событии ещё `event, event_id, at`. Ошибка обработки → `<очередь>.retry` (5 с) → до 3 повторов → `geek.dead`.
+
 ## Примеры
 
 `POST /tasks/8/check`

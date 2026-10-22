@@ -25,7 +25,7 @@ Telegram-бота, решает задачи-прототипы по номер�
 
 | Репозиторий | Что внутри |
 |---|---|
-| [backend](https://github.com/Geek-Season/backend) | Python 3.12, FastAPI, PostgreSQL, Redis, Telegram-бот (aiogram), миграции Alembic, автотесты |
+| [backend](https://github.com/Geek-Season/backend) | Python 3.12, FastAPI, PostgreSQL, Redis, RabbitMQ + фоновый воркер, Telegram-бот (aiogram), миграции Alembic, автотесты |
 | [frontend](https://github.com/Geek-Season/frontend) | React 18 + Vite |
 | docs (этот) | Требования, диаграммы, план работ |
 
@@ -58,13 +58,13 @@ Kanban-доска: GitHub Projects — _ссылка_ · Макеты: Figma —
 | Рейтинг за неделю и за всё время (Redis) | ✅ |
 | Запуск всей системы одной командой `docker compose up` | ✅ |
 | Роли: управлять банком задач может только админ; редактор задач на сайте | ✅ |
-| Автотесты backend (86 шт.) | ✅ |
-| Достижения и уведомления в Telegram через брокер сообщений | ⏳ |
+| Автотесты backend (104 шт.) | ✅ |
+| Достижения и уведомления в Telegram через RabbitMQ: повторы с паузой, «мёртвые письма», без дублей | ✅ |
 
 ## Стек
 
 Python 3.12 · FastAPI · Pydantic 2 · SQLAlchemy 2 · Alembic · PostgreSQL 16 · Redis 7 ·
-aiogram 3 · PyJWT · React 18 · Vite · Docker Compose · Mermaid.
+aiogram 3 · RabbitMQ 3.13 (pika) · PyJWT · React 18 · Vite · Docker Compose · Mermaid.
 
-> Python вместо ASP.NET Core и Redis согласуются с преподавателем.
+> Python вместо ASP.NET Core, Redis и RabbitMQ согласуются с преподавателем.
 > Обоснование — в [бизнес-требованиях](requirements/business-requirements.md#7-технологический-стек).
