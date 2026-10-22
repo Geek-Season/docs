@@ -1,0 +1,2150 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Geek Season",
+    "description": "Подготовка к ЕГЭ по информатике: банк номеров, прототипы и проверка ответов.",
+    "version": "0.5.0"
+  },
+  "paths": {
+    "/auth/telegram/start": {
+      "post": {
+        "tags": [
+          "Вход"
+        ],
+        "summary": "Telegram Start",
+        "operationId": "telegram_start_auth_telegram_start_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginStart"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/telegram/status/{token}": {
+      "get": {
+        "tags": [
+          "Вход"
+        ],
+        "summary": "Telegram Status",
+        "description": "Сайт вызывает каждые 2 секунды, пока статус pending.",
+        "operationId": "telegram_status_auth_telegram_status__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/code": {
+      "post": {
+        "tags": [
+          "Вход"
+        ],
+        "summary": "Code Login",
+        "operationId": "code_login_auth_code_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Вход"
+        ],
+        "summary": "Me",
+        "operationId": "me_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/numbers": {
+      "get": {
+        "tags": [
+          "Номера ЕГЭ"
+        ],
+        "summary": "Get Numbers",
+        "description": "Все номера ЕГЭ по порядку — карточки страницы «Задания».\n\nДля вошедшего ученика в поле solved — сколько задач номера он решил.",
+        "operationId": "get_numbers_numbers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExamNumberRead"
+                  },
+                  "type": "array",
+                  "title": "Response Get Numbers Numbers Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/numbers/{code}/tasks": {
+      "get": {
+        "tags": [
+          "Номера ЕГЭ"
+        ],
+        "summary": "Get Number Tasks",
+        "description": "Прототипы номера. Ответы и разборы не отдаются.",
+        "operationId": "get_number_tasks_numbers__code__tasks_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "demo",
+                    "official",
+                    "author"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "new",
+                "old",
+                "easy",
+                "hard"
+              ],
+              "type": "string",
+              "default": "new",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "progress",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "solved",
+                    "unsolved"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Только для вошедших: solved — решённые, unsolved — ещё не решённые",
+              "title": "Progress"
+            },
+            "description": "Только для вошедших: solved — решённые, unsolved — ещё не решённые"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "Задачи"
+        ],
+        "summary": "Get Task",
+        "operationId": "get_task_tasks__task_id__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Задачи"
+        ],
+        "summary": "Update Task",
+        "operationId": "update_task_tasks__task_id__patch",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskAdminRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Задачи"
+        ],
+        "summary": "Delete Task",
+        "description": "Задача переносится в архив и пропадает из списков.",
+        "operationId": "delete_task_tasks__task_id__delete",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/{task_id}/check": {
+      "post": {
+        "tags": [
+          "Задачи"
+        ],
+        "summary": "Check Task",
+        "description": "Проверить ответ. Код 200 значит «запрос обработан»; верность — в поле is_correct.\n\nЕсли ученик вошёл, ответ сохраняется в его статистику.",
+        "operationId": "check_task_tasks__task_id__check_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "post": {
+        "tags": [
+          "Задачи"
+        ],
+        "summary": "Create Task",
+        "operationId": "create_task_tasks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskAdminRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me/stats": {
+      "get": {
+        "tags": [
+          "Прогресс"
+        ],
+        "summary": "My Stats",
+        "description": "Статистика вошедшего ученика для страницы профиля.",
+        "operationId": "my_stats_me_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStats"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/exam/start": {
+      "post": {
+        "tags": [
+          "Пробник"
+        ],
+        "summary": "Start Exam",
+        "description": "201 — создан новый пробник; 200 — уже идёт, возвращаем его же.",
+        "operationId": "start_exam_exam_start_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamView"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/exam/current": {
+      "get": {
+        "tags": [
+          "Пробник"
+        ],
+        "summary": "Current Exam",
+        "description": "Идущий пробник или null — «пробника нет» это нормальное состояние, а не ошибка.",
+        "operationId": "current_exam_exam_current_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ExamView"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Current Exam Exam Current Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/exam/history": {
+      "get": {
+        "tags": [
+          "Пробник"
+        ],
+        "summary": "Exam History",
+        "operationId": "exam_history_exam_history_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExamHistoryItem"
+                  },
+                  "type": "array",
+                  "title": "Response Exam History Exam History Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/exam/{session_id}": {
+      "get": {
+        "tags": [
+          "Пробник"
+        ],
+        "summary": "Get Exam",
+        "operationId": "get_exam_exam__session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exam/{session_id}/answers/{position}": {
+      "put": {
+        "tags": [
+          "Пробник"
+        ],
+        "summary": "Save Answer",
+        "operationId": "save_answer_exam__session_id__answers__position__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "position",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Position"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamAnswerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exam/{session_id}/finish": {
+      "post": {
+        "tags": [
+          "Пробник"
+        ],
+        "summary": "Finish Exam",
+        "operationId": "finish_exam_exam__session_id__finish_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rating": {
+      "get": {
+        "tags": [
+          "Рейтинг"
+        ],
+        "summary": "Get Rating",
+        "description": "Таблица лидеров. Очко — за каждую задачу, решённую впервые.\n\nВошедшему ученику в поле me — его место, даже если он не в топе.",
+        "operationId": "get_rating_rating_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "week",
+                "all"
+              ],
+              "type": "string",
+              "default": "week",
+              "title": "Period"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rating"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Проверка запуска"
+        ],
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnswerResult": {
+        "properties": {
+          "task_id": {
+            "type": "integer",
+            "title": "Task Id"
+          },
+          "is_correct": {
+            "type": "boolean",
+            "title": "Is Correct"
+          },
+          "correct_answer": {
+            "type": "string",
+            "title": "Correct Answer"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "is_correct",
+          "correct_answer",
+          "explanation"
+        ],
+        "title": "AnswerResult"
+      },
+      "AnswerSubmission": {
+        "properties": {
+          "answer": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Answer",
+            "description": "Ответ как в бланке ЕГЭ: число, слово или несколько чисел через пробел",
+            "examples": [
+              "4"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "answer"
+        ],
+        "title": "AnswerSubmission"
+      },
+      "CodeLogin": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "title": "Code",
+            "description": "6 цифр из бота",
+            "examples": [
+              "482913"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "CodeLogin"
+      },
+      "DayActivity": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "attempts",
+          "correct"
+        ],
+        "title": "DayActivity"
+      },
+      "ExamAnswerIn": {
+        "properties": {
+          "answer": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Answer",
+            "description": "Пустая строка — стереть ответ",
+            "examples": [
+              "22"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "answer"
+        ],
+        "title": "ExamAnswerIn"
+      },
+      "ExamHistoryItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Finished At"
+          },
+          "primary_score": {
+            "type": "integer",
+            "title": "Primary Score"
+          },
+          "max_score": {
+            "type": "integer",
+            "title": "Max Score"
+          },
+          "tasks_count": {
+            "type": "integer",
+            "title": "Tasks Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "started_at",
+          "finished_at",
+          "primary_score",
+          "max_score",
+          "tasks_count"
+        ],
+        "title": "ExamHistoryItem"
+      },
+      "ExamItem": {
+        "properties": {
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "exam_number": {
+            "type": "string",
+            "title": "Exam Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "task_id": {
+            "type": "integer",
+            "title": "Task Id"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "is_correct": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Correct"
+          },
+          "correct_answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct Answer"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "position",
+          "exam_number",
+          "title",
+          "points",
+          "task_id",
+          "statement",
+          "image_url",
+          "answer"
+        ],
+        "title": "ExamItem"
+      },
+      "ExamNumberRead": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "tasks_count": {
+            "type": "integer",
+            "title": "Tasks Count"
+          },
+          "solved": {
+            "type": "integer",
+            "title": "Solved",
+            "description": "Сколько задач номера решил вошедший ученик (0, если не вошёл)",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "title",
+          "tasks_count"
+        ],
+        "title": "ExamNumberRead",
+        "description": "Карточка на странице «Задания»."
+      },
+      "ExamView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "deadline_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Deadline At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "server_now": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Now",
+            "description": "Время сервера — по нему сайт сверяет свой отсчёт"
+          },
+          "duration_minutes": {
+            "type": "integer",
+            "title": "Duration Minutes"
+          },
+          "max_score": {
+            "type": "integer",
+            "title": "Max Score"
+          },
+          "primary_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Score"
+          },
+          "answered": {
+            "type": "integer",
+            "title": "Answered"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ExamItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "started_at",
+          "deadline_at",
+          "finished_at",
+          "server_now",
+          "duration_minutes",
+          "max_score",
+          "primary_score",
+          "answered",
+          "items"
+        ],
+        "title": "ExamView"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LoginStart": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "bot_link": {
+            "type": "string",
+            "title": "Bot Link",
+            "examples": [
+              "https://t.me/GeekSeasonBot?start=abc123"
+            ]
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "description": "Сколько секунд действует ключ"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "bot_link",
+          "expires_in"
+        ],
+        "title": "LoginStart",
+        "description": "Ключ для QR-кода и ссылка на бота."
+      },
+      "LoginStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "declined",
+              "expired",
+              "confirmed"
+            ],
+            "title": "Status"
+          },
+          "access_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Access Token"
+          },
+          "user": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "LoginStatus",
+        "description": "Ответ на вопрос сайта «подтвердили ли вход?».\n\npending   — ещё ждём нажатия «Да» в боте;\ndeclined  — в боте нажали «Нет»;\nexpired   — ключ устарел или уже использован;\nconfirmed — вход подтверждён, в ответе есть access_token и user."
+      },
+      "MyPlace": {
+        "properties": {
+          "place": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          }
+        },
+        "type": "object",
+        "required": [
+          "place",
+          "points"
+        ],
+        "title": "MyPlace"
+      },
+      "NumberProgress": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "tasks_count": {
+            "type": "integer",
+            "title": "Tasks Count"
+          },
+          "attempted": {
+            "type": "integer",
+            "title": "Attempted",
+            "description": "Сколько разных задач номера ученик пробовал"
+          },
+          "solved": {
+            "type": "integer",
+            "title": "Solved",
+            "description": "Сколько задач номера решено верно"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "title",
+          "tasks_count",
+          "attempted",
+          "solved"
+        ],
+        "title": "NumberProgress"
+      },
+      "Rating": {
+        "properties": {
+          "period": {
+            "type": "string",
+            "enum": [
+              "week",
+              "all"
+            ],
+            "title": "Period"
+          },
+          "participants": {
+            "type": "integer",
+            "title": "Participants"
+          },
+          "top": {
+            "items": {
+              "$ref": "#/components/schemas/RatingRow"
+            },
+            "type": "array",
+            "title": "Top"
+          },
+          "me": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MyPlace"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "period",
+          "participants",
+          "top",
+          "me"
+        ],
+        "title": "Rating"
+      },
+      "RatingRow": {
+        "properties": {
+          "place": {
+            "type": "integer",
+            "title": "Place"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          },
+          "points": {
+            "type": "integer",
+            "title": "Points"
+          },
+          "is_me": {
+            "type": "boolean",
+            "title": "Is Me"
+          }
+        },
+        "type": "object",
+        "required": [
+          "place",
+          "user_id",
+          "first_name",
+          "username",
+          "points",
+          "is_me"
+        ],
+        "title": "RatingRow"
+      },
+      "RecentAttempt": {
+        "properties": {
+          "task_id": {
+            "type": "integer",
+            "title": "Task Id"
+          },
+          "exam_number": {
+            "type": "string",
+            "title": "Exam Number"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "is_correct": {
+            "type": "boolean",
+            "title": "Is Correct"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "exam_number",
+          "answer",
+          "is_correct",
+          "created_at"
+        ],
+        "title": "RecentAttempt"
+      },
+      "TaskAdminRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "exam_number": {
+            "type": "string",
+            "title": "Exam Number",
+            "description": "Код номера ЕГЭ, например «1» или «19-21»"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "demo",
+              "official",
+              "author"
+            ],
+            "title": "Source"
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Label"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "solved",
+                  "failed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "Для вошедшего ученика: solved — решена, failed — пробовал, но неверно"
+          },
+          "correct_answer": {
+            "type": "string",
+            "title": "Correct Answer"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "exam_number",
+          "statement",
+          "image_url",
+          "source",
+          "source_label",
+          "difficulty",
+          "correct_answer",
+          "explanation",
+          "created_at"
+        ],
+        "title": "TaskAdminRead",
+        "description": "Задача для автора: с ответом и разбором."
+      },
+      "TaskCreate": {
+        "properties": {
+          "exam_number": {
+            "type": "string",
+            "title": "Exam Number",
+            "examples": [
+              "1"
+            ]
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Statement"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "correct_answer": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Correct Answer",
+            "examples": [
+              "42"
+            ]
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation",
+            "default": ""
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "demo",
+              "official",
+              "author"
+            ],
+            "title": "Source",
+            "default": "author"
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Label"
+          },
+          "difficulty": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Difficulty",
+            "default": 50
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "exam_number",
+          "statement",
+          "correct_answer"
+        ],
+        "title": "TaskCreate"
+      },
+      "TaskPage": {
+        "properties": {
+          "number": {
+            "$ref": "#/components/schemas/ExamNumberRead"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Сколько задач подходит под фильтр всего"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskRead"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "total",
+          "items"
+        ],
+        "title": "TaskPage",
+        "description": "Страница прототипов одного номера."
+      },
+      "TaskRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "exam_number": {
+            "type": "string",
+            "title": "Exam Number",
+            "description": "Код номера ЕГЭ, например «1» или «19-21»"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "demo",
+              "official",
+              "author"
+            ],
+            "title": "Source"
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Label"
+          },
+          "difficulty": {
+            "type": "integer",
+            "title": "Difficulty"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "solved",
+                  "failed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "Для вошедшего ученика: solved — решена, failed — пробовал, но неверно"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "exam_number",
+          "statement",
+          "image_url",
+          "source",
+          "source_label",
+          "difficulty"
+        ],
+        "title": "TaskRead",
+        "description": "Задача для ученика: БЕЗ правильного ответа и разбора."
+      },
+      "TaskUpdate": {
+        "properties": {
+          "exam_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exam Number"
+          },
+          "statement": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statement"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "correct_answer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct Answer"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "demo",
+                  "official",
+                  "author"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "source_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Label"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TaskUpdate",
+        "description": "Все поля необязательны: меняем только присланные."
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "const": "bearer",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserRead"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "user"
+        ],
+        "title": "TokenResponse",
+        "description": "Успешный вход: токен для заголовка Authorization: Bearer <access_token>."
+      },
+      "UserRead": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "first_name",
+          "last_name",
+          "username",
+          "created_at"
+        ],
+        "title": "UserRead"
+      },
+      "UserStats": {
+        "properties": {
+          "solved_tasks": {
+            "type": "integer",
+            "title": "Solved Tasks"
+          },
+          "attempted_tasks": {
+            "type": "integer",
+            "title": "Attempted Tasks"
+          },
+          "total_tasks": {
+            "type": "integer",
+            "title": "Total Tasks",
+            "description": "Сколько задач всего в банке"
+          },
+          "total_attempts": {
+            "type": "integer",
+            "title": "Total Attempts"
+          },
+          "correct_attempts": {
+            "type": "integer",
+            "title": "Correct Attempts"
+          },
+          "accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy",
+            "description": "Доля верных ответов от 0 до 1; null — ответов ещё нет"
+          },
+          "streak_days": {
+            "type": "integer",
+            "title": "Streak Days",
+            "description": "Дней подряд с хотя бы одним ответом"
+          },
+          "active_days": {
+            "type": "integer",
+            "title": "Active Days"
+          },
+          "activity": {
+            "items": {
+              "$ref": "#/components/schemas/DayActivity"
+            },
+            "type": "array",
+            "title": "Activity",
+            "description": "Последние 14 дней, по порядку"
+          },
+          "by_number": {
+            "items": {
+              "$ref": "#/components/schemas/NumberProgress"
+            },
+            "type": "array",
+            "title": "By Number"
+          },
+          "weak_numbers": {
+            "items": {
+              "$ref": "#/components/schemas/WeakNumber"
+            },
+            "type": "array",
+            "title": "Weak Numbers",
+            "description": "Что повторить: до 5 номеров, сначала самые проблемные"
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/RecentAttempt"
+            },
+            "type": "array",
+            "title": "Recent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "solved_tasks",
+          "attempted_tasks",
+          "total_tasks",
+          "total_attempts",
+          "correct_attempts",
+          "accuracy",
+          "streak_days",
+          "active_days",
+          "activity",
+          "by_number",
+          "weak_numbers",
+          "recent"
+        ],
+        "title": "UserStats"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WeakNumber": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          },
+          "accuracy": {
+            "type": "number",
+            "title": "Accuracy"
+          },
+          "unsolved_tasks": {
+            "type": "integer",
+            "title": "Unsolved Tasks",
+            "description": "Задач номера, которые пробовал, но не решил"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "title",
+          "attempts",
+          "correct",
+          "accuracy",
+          "unsolved_tasks"
+        ],
+        "title": "WeakNumber"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
