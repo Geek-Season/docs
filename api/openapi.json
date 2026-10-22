@@ -1023,6 +1023,14 @@
             "type": "integer",
             "title": "Max Score"
           },
+          "test_score": {
+            "type": "integer",
+            "title": "Test Score"
+          },
+          "test_score_approximate": {
+            "type": "boolean",
+            "title": "Test Score Approximate"
+          },
           "tasks_count": {
             "type": "integer",
             "title": "Tasks Count"
@@ -1035,6 +1043,8 @@
           "finished_at",
           "primary_score",
           "max_score",
+          "test_score",
+          "test_score_approximate",
           "tasks_count"
         ],
         "title": "ExamHistoryItem"
@@ -1217,6 +1227,54 @@
             ],
             "title": "Primary Score"
           },
+          "test_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Score",
+            "description": "Тестовый балл по шкале Рособрнадзора 2026 (после завершения)"
+          },
+          "test_score_approximate": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Score Approximate",
+            "description": "true — в варианте меньше 29 первичных баллов (в банке не все номера), балл приблизительный"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed",
+            "description": "Порог Рособрнадзора: 40 тестовых"
+          },
+          "university_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "University Passed",
+            "description": "Порог для поступления в вуз: 46 тестовых"
+          },
           "answered": {
             "type": "integer",
             "title": "Answered"
@@ -1239,6 +1297,10 @@
           "duration_minutes",
           "max_score",
           "primary_score",
+          "test_score",
+          "test_score_approximate",
+          "passed",
+          "university_passed",
           "answered",
           "items"
         ],
