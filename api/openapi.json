@@ -1063,7 +1063,8 @@
           },
           "is_correct": {
             "type": "boolean",
-            "title": "Is Correct"
+            "title": "Is Correct",
+            "description": "У задачи 19–21 — верны все три части"
           },
           "correct_answer": {
             "type": "string",
@@ -1072,6 +1073,14 @@
           "explanation": {
             "type": "string",
             "title": "Explanation"
+          },
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/PartResult"
+            },
+            "type": "array",
+            "title": "Parts",
+            "default": []
           }
         },
         "type": "object",
@@ -1086,22 +1095,47 @@
       "AnswerSubmission": {
         "properties": {
           "answer": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Answer",
             "description": "Ответ как в бланке ЕГЭ: число, слово или несколько чисел через пробел",
             "examples": [
               "4"
             ]
+          },
+          "answers": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answers",
+            "description": "Ответы на части 19–21; пустая строка — нет ответа",
+            "examples": [
+              {
+                "19": "29"
+              }
+            ]
           }
         },
         "additionalProperties": false,
         "type": "object",
-        "required": [
-          "answer"
-        ],
-        "title": "AnswerSubmission"
+        "title": "AnswerSubmission",
+        "description": "Обычная задача — поле answer. Задача 19–21 — поле answers: {\"19\": \"29\", \"20\": \"28 48\", \"21\": \"44\"}."
       },
       "CodeLogin": {
         "properties": {
@@ -1240,6 +1274,18 @@
           "statement": {
             "type": "string",
             "title": "Statement"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question",
+            "description": "Для 19, 20, 21: вопрос к общему условию игры"
           },
           "image_url": {
             "anyOf": [
@@ -1668,6 +1714,130 @@
         ],
         "title": "NumberProgress"
       },
+      "PartAdminRead": {
+        "properties": {
+          "number": {
+            "type": "string",
+            "title": "Number",
+            "examples": [
+              "19"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "correct_answer": {
+            "type": "string",
+            "title": "Correct Answer"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "question",
+          "correct_answer",
+          "explanation"
+        ],
+        "title": "PartAdminRead"
+      },
+      "PartIn": {
+        "properties": {
+          "number": {
+            "type": "string",
+            "title": "Number",
+            "examples": [
+              "19"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Question"
+          },
+          "correct_answer": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Correct Answer",
+            "examples": [
+              "29"
+            ]
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "number",
+          "question",
+          "correct_answer"
+        ],
+        "title": "PartIn"
+      },
+      "PartRead": {
+        "properties": {
+          "number": {
+            "type": "string",
+            "title": "Number",
+            "examples": [
+              "19"
+            ]
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "question"
+        ],
+        "title": "PartRead",
+        "description": "Вопрос составной задачи — без ответа."
+      },
+      "PartResult": {
+        "properties": {
+          "number": {
+            "type": "string",
+            "title": "Number"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "is_correct": {
+            "type": "boolean",
+            "title": "Is Correct"
+          },
+          "correct_answer": {
+            "type": "string",
+            "title": "Correct Answer"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "answer",
+          "is_correct",
+          "correct_answer",
+          "explanation"
+        ],
+        "title": "PartResult"
+      },
       "Rating": {
         "properties": {
           "period": {
@@ -1838,6 +2008,14 @@
             "type": "integer",
             "title": "Difficulty"
           },
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/PartAdminRead"
+            },
+            "type": "array",
+            "title": "Parts",
+            "default": []
+          },
           "status": {
             "anyOf": [
               {
@@ -1856,7 +2034,8 @@
           },
           "correct_answer": {
             "type": "string",
-            "title": "Correct Answer"
+            "title": "Correct Answer",
+            "description": "У задач 19–21 — сводка ответов частей, например «19: 29; 20: 28 48; 21: 44»"
           },
           "explanation": {
             "type": "string",
@@ -1911,10 +2090,18 @@
             "title": "Image Url"
           },
           "correct_answer": {
-            "type": "string",
-            "maxLength": 100,
-            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Correct Answer",
+            "description": "Обязателен для всех номеров, кроме «19-21»: там ответы — в parts",
             "examples": [
               "42"
             ]
@@ -1952,14 +2139,28 @@
             "minimum": 0.0,
             "title": "Difficulty",
             "default": 50
+          },
+          "parts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PartIn"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parts",
+            "description": "Только для «19-21»: ровно три вопроса с номерами 19, 20, 21"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
           "exam_number",
-          "statement",
-          "correct_answer"
+          "statement"
         ],
         "title": "TaskCreate"
       },
@@ -2039,6 +2240,15 @@
           "difficulty": {
             "type": "integer",
             "title": "Difficulty"
+          },
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/PartRead"
+            },
+            "type": "array",
+            "title": "Parts",
+            "description": "Вопросы 19, 20, 21 — только у задач номера «19-21»; у остальных пусто",
+            "default": []
           },
           "status": {
             "anyOf": [
@@ -2171,6 +2381,21 @@
               }
             ],
             "title": "Difficulty"
+          },
+          "parts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PartIn"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parts",
+            "description": "Заменить вопросы 19–21 целиком"
           }
         },
         "additionalProperties": false,
