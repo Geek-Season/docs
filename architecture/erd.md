@@ -57,6 +57,10 @@ erDiagram
     achievements ||--o{ user_achievements : ""
     users ||--o{ user_achievements : "получает"
     users ||--o{ notifications : "получает"
+    users ||--o{ user_number_ratings : "PTS по номерам"
+    exam_numbers ||--o{ user_number_ratings : ""
+    users ||--o{ pts_changes : "история PTS"
+    attempts ||--o| pts_changes : "первая попытка"
 
     users {
         int id PK
@@ -69,6 +73,10 @@ erDiagram
         bool avatar_custom "своя или фото из Telegram"
         string telegram_photo_uid "nullable; какое фото из Telegram скачано"
         string gender "nullable; m | f"
+        float pts "PTS, Glicko-2; старт 1000"
+        float pts_rd "уверенность"
+        float pts_vol "волатильность"
+        int pts_games "засчитано первых попыток"
         string role "student | admin; план: tutor"
         timestamptz created_at
         timestamptz last_login_at
@@ -89,6 +97,10 @@ erDiagram
         string source "demo | official | approbation | author"
         string source_label "nullable"
         int difficulty "0..100"
+        float rating "nullable; рейтинг задачи для PTS, старт 700 + 10 × difficulty"
+        float rating_rd "уверенность"
+        float rating_vol "волатильность"
+        int rating_games "учтено первых попыток"
         bool is_archived "вместо удаления"
         timestamptz created_at
     }
@@ -110,6 +122,29 @@ erDiagram
         int size "байт"
         int position "порядок"
         timestamptz created_at
+    }
+    user_number_ratings {
+        int user_id PK "FK"
+        int exam_number_id PK "FK"
+        float pts "PTS по номеру"
+        float rd
+        float vol
+        int games
+    }
+    pts_changes {
+        int id PK
+        int attempt_id FK "UNIQUE: одна запись на первую попытку"
+        int user_id FK
+        int task_id FK
+        int exam_number_id FK
+        float score "1 | 0 | доля верных частей 19–21"
+        float pts_before
+        float pts_after
+        float number_pts_before
+        float number_pts_after
+        float task_before
+        float task_after
+        timestamptz created_at "время попытки"
     }
     attempts {
         int id PK
