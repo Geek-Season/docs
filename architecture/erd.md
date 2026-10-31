@@ -64,6 +64,7 @@ erDiagram
         string first_name
         string last_name "nullable"
         string username "nullable"
+        string nickname "nullable; ник на сайте вместо имени"
         string role "student | admin; план: tutor"
         timestamptz created_at
         timestamptz last_login_at
