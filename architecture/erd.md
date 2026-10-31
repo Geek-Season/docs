@@ -61,6 +61,7 @@ erDiagram
     exam_numbers ||--o{ user_number_ratings : ""
     users ||--o{ pts_changes : "история PTS"
     attempts ||--o| pts_changes : "первая попытка"
+    exam_sessions ||--o{ pts_changes : "задачи пробника"
 
     users {
         int id PK
@@ -76,7 +77,9 @@ erDiagram
         float pts "PTS, Glicko-2; старт 1000"
         float pts_rd "уверенность"
         float pts_vol "волатильность"
-        int pts_games "засчитано первых попыток"
+        int pts_games "засчитано задач"
+        string rank_key "nullable; ранг, до входного пробника — null"
+        timestamptz calibrated_at "nullable; когда пройден входной пробник"
         string role "student | admin; план: tutor"
         timestamptz created_at
         timestamptz last_login_at
@@ -133,11 +136,12 @@ erDiagram
     }
     pts_changes {
         int id PK
-        int attempt_id FK "UNIQUE: одна запись на первую попытку"
+        int attempt_id FK "nullable, UNIQUE: первая попытка на странице номера"
+        int exam_session_id FK "nullable: задача из пробника (пустой ответ = 0)"
         int user_id FK
         int task_id FK
         int exam_number_id FK
-        float score "1 | 0 | доля верных частей 19–21"
+        float score "1 | 0 | доля верных частей 19–21; UNIQUE (user_id, task_id)"
         float pts_before
         float pts_after
         float number_pts_before
