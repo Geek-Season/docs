@@ -62,6 +62,8 @@ erDiagram
     users ||--o{ pts_changes : "история PTS"
     attempts ||--o| pts_changes : "первая попытка"
     exam_sessions ||--o{ pts_changes : "задачи пробника"
+    users ||--o{ admin_actions : "админ сделал"
+    users ||--o{ admin_actions : "с учеником сделали"
 
     users {
         int id PK
@@ -81,6 +83,7 @@ erDiagram
         string rank_key "nullable; ранг, до входного пробника — null"
         timestamptz calibrated_at "nullable; когда пройден входной пробник"
         string role "student | admin; план: tutor"
+        timestamptz blocked_at "nullable; заблокирован админом"
         timestamptz created_at
         timestamptz last_login_at
     }
@@ -223,6 +226,14 @@ erDiagram
         int user_id PK, FK
         string achievement_code PK, FK
         timestamptz received_at
+    }
+    admin_actions {
+        int id PK
+        int admin_id FK "nullable; кто сделал"
+        int user_id FK "nullable; с кем"
+        string action "pts.set | pts.rank | pts.recalibrate | stats.reset | nickname.set | role.grant | user.block | …"
+        json details "параметры и было/стало"
+        timestamptz created_at
     }
     notifications {
         int id PK
