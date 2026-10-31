@@ -65,6 +65,10 @@ erDiagram
         string last_name "nullable"
         string username "nullable"
         string nickname "nullable; ник на сайте вместо имени"
+        string avatar_file "nullable; uploads/avatars"
+        bool avatar_custom "своя или фото из Telegram"
+        string telegram_photo_uid "nullable; какое фото из Telegram скачано"
+        string gender "nullable; m | f"
         string role "student | admin; план: tutor"
         timestamptz created_at
         timestamptz last_login_at
