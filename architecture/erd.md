@@ -82,7 +82,7 @@ erDiagram
         string image_url "nullable"
         string correct_answer
         text explanation
-        string source "demo | official | author"
+        string source "demo | official | approbation | author"
         string source_label "nullable"
         int difficulty "0..100"
         bool is_archived "вместо удаления"
