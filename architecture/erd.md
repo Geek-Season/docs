@@ -235,6 +235,11 @@ erDiagram
         json details "параметры и было/стало"
         timestamptz created_at
     }
+    site_settings {
+        string key PK "exam_date"
+        string value "nullable"
+        timestamptz updated_at
+    }
     notifications {
         int id PK
         int user_id FK
