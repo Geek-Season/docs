@@ -3,7 +3,7 @@
   "info": {
     "title": "Geek Season",
     "description": "Подготовка к ЕГЭ по информатике: банк номеров, прототипы и проверка ответов.",
-    "version": "0.8.0"
+    "version": "0.9.0"
   },
   "paths": {
     "/auth/telegram/start": {
@@ -1332,7 +1332,7 @@
           "Рейтинг"
         ],
         "summary": "Get Rating",
-        "description": "Таблица лидеров. Очко — за каждую задачу, решённую впервые.\n\nВошедшему ученику в поле me — его место, даже если он не в топе.",
+        "description": "Таблица лидеров по PTS: за всё время, за неделю (прирост) или по номеру ЕГЭ.\n\nУчаствуют только ученики с рангом. Другим виден только ранг; свой PTS — в поле me.",
         "operationId": "get_rating_rating_get",
         "security": [
           {
@@ -1350,8 +1350,52 @@
                 "all"
               ],
               "type": "string",
-              "default": "week",
+              "default": "all",
               "title": "Period"
+            }
+          },
+          {
+            "name": "number",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 10
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Код номера ЕГЭ («27», «19-21»): таблица по номеру",
+              "title": "Number"
+            },
+            "description": "Код номера ЕГЭ («27», «19-21»): таблица по номеру"
+          },
+          {
+            "name": "rank",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "immortal",
+                    "divine",
+                    "overlord",
+                    "legend",
+                    "hero",
+                    "knight",
+                    "recruit"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rank"
             }
           },
           {
@@ -3188,6 +3232,11 @@
       },
       "MyPlace": {
         "properties": {
+          "ranked": {
+            "type": "boolean",
+            "title": "Ranked",
+            "description": "Есть ранг; без него (до входного пробника) в таблицу не попасть"
+          },
           "place": {
             "anyOf": [
               {
@@ -3197,17 +3246,63 @@
                 "type": "null"
               }
             ],
-            "title": "Place"
+            "title": "Place",
+            "description": "Место в этой таблице (null — не в ней)"
           },
-          "points": {
-            "type": "integer",
-            "title": "Points"
+          "pts": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pts",
+            "description": "Свой PTS: общий или по номеру (только себе)"
+          },
+          "growth": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Growth",
+            "description": "Свой прирост за неделю"
+          },
+          "row": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RatingRow"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Своя строка, если она ниже топа — сайт показывает её после «⋯»"
+          },
+          "next_rank": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NextRank"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
         "required": [
+          "ranked",
           "place",
-          "points"
+          "pts",
+          "growth",
+          "row",
+          "next_rank"
         ],
         "title": "MyPlace"
       },
@@ -3294,6 +3389,18 @@
               }
             ],
             "title": "Next Min Primary"
+          },
+          "immortal_place": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Immortal Place",
+            "description": "Место среди Immortal («Immortal #3»)"
           }
         },
         "type": "object",
@@ -3310,6 +3417,24 @@
         ],
         "title": "MyRank",
         "description": "Карточка ранга в профиле. Видит только сам ученик: PTS и прогноз — не для других."
+      },
+      "NextRank": {
+        "properties": {
+          "rank": {
+            "$ref": "#/components/schemas/RankRead"
+          },
+          "primary_needed": {
+            "type": "integer",
+            "title": "Primary Needed",
+            "description": "Сколько первичных баллов прогноза не хватает"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rank",
+          "primary_needed"
+        ],
+        "title": "NextRank"
       },
       "NotificationRead": {
         "properties": {
@@ -3704,9 +3829,49 @@
             ],
             "title": "Period"
           },
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "immortal",
+                  "divine",
+                  "overlord",
+                  "legend",
+                  "hero",
+                  "knight",
+                  "recruit"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rank"
+          },
           "participants": {
             "type": "integer",
-            "title": "Participants"
+            "title": "Participants",
+            "description": "Сколько учеников в таблице (без фильтра по рангу)"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts",
+            "description": "{ранг: сколько учеников} — для кнопок фильтра"
           },
           "top": {
             "items": {
@@ -3729,7 +3894,10 @@
         "type": "object",
         "required": [
           "period",
+          "number",
+          "rank",
           "participants",
+          "counts",
           "top",
           "me"
         ],
@@ -3769,18 +3937,31 @@
             "title": "Has Custom Avatar"
           },
           "rank": {
+            "$ref": "#/components/schemas/RankRead"
+          },
+          "immortal_place": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/RankRead"
+                "type": "integer"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Immortal Place",
+            "description": "Место среди Immortal («Immortal #3»); у остальных — null"
           },
-          "points": {
-            "type": "integer",
-            "title": "Points"
+          "growth": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Growth",
+            "description": "Прирост PTS за неделю (только в period=week)"
           },
           "is_me": {
             "type": "boolean",
@@ -3795,11 +3976,13 @@
           "has_nickname",
           "avatar_url",
           "has_custom_avatar",
-          "points",
+          "rank",
+          "immortal_place",
+          "growth",
           "is_me"
         ],
         "title": "RatingRow",
-        "description": "Строка рейтинга. Рейтинг открыт всем, поэтому здесь нет ничего, по чему\nученика можно найти в Telegram: ни @username, ни Telegram ID, ни фамилии."
+        "description": "Строка рейтинга. Рейтинг открыт всем, поэтому здесь нет ничего, по чему\nученика можно найти в Telegram (ни @username, ни Telegram ID, ни фамилии), и нет чужого PTS."
       },
       "RecentAttempt": {
         "properties": {
