@@ -70,7 +70,7 @@
 
 | Метод | Адрес | | Что делает | Ответы |
 |---|---|---|---|---|
-| GET | `/me/stats` | 🔒 | Статистика для профиля | 200, 401 |
+| GET | `/me/stats` | 🔒 | Статистика для профиля; `calendar` — календарь активности за год: `days` (только дни с ответами: `date`, `attempts`, `correct`), `total`, `active_days`, `best_streak`, `streak` | 200, 401 |
 | GET | `/me/rank` | 🔒 | Карточка ранга: `calibrated`, `rank`, `pts`, `games`, прогноз `forecast_primary` / `forecast_test`, `next_rank`, `next_min_primary`. Видит только сам ученик | 200, 401 |
 
 ## Пробник
@@ -89,6 +89,7 @@
 | Метод | Адрес | | Что делает | Ответы |
 |---|---|---|---|---|
 | GET | `/rating` | ◐ | Таблица лидеров по PTS, топ-20 (`limit` до 100). Параметры: `period` (`all` — по общему PTS, по умолчанию; `week` — по приросту PTS с понедельника, входной пробник и правки админа не в счёт), `number` (код номера: по PTS в номере; только с `period=all`), `rank` (фильтр: место внутри ранга). Только ученики с рангом и без блокировки. В строке: `place`, `name`, `avatar_url`, `rank`, `immortal_place` («Immortal #3»), `growth` (прирост за неделю), `has_nickname`, `has_custom_avatar`; чужой PTS, @username и Telegram ID не отдаются. `counts` — сколько учеников в каждом ранге. Вошедшему — `me`: `ranked`, `place`, свой `pts` (или PTS по номеру), `growth`, `row` (своя строка, если ниже топа), `next_rank` (`primary_needed` — сколько первичных баллов прогноза не хватает) | 200, 404 номер, 422 |
+| GET | `/rating/users/{id}` | 🔓 | Карточка ученика (клик по строке рейтинга, «Как меня видят» в профиле): `name`, `avatar_url`, `rank`, `immortal_place`, `place` (в таблице «Всё время»), `since`, `solved`, `streak`, полученные `achievements` и `achievements_total`, `calendar` — активность за год. Ни PTS, ни прогноза, ни пробников, ни @username; заблокированный — 404 | 200, 404 |
 
 ## Достижения и уведомления
 
