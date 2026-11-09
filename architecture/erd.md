@@ -13,8 +13,10 @@
 | Попытка | `attempts` | Один ответ ученика на задачу | ✅ |
 | Группа | `groups` | Учебная группа репетитора | план |
 | Участник группы | `group_members` | Связь ученик ↔ группа | план (служебная) |
-| Задание | `assignments` | Набор задач для группы с дедлайном | план |
-| Задача задания | `assignment_tasks` | Связь задание ↔ задача | план (служебная) |
+| Домашка | `homeworks` | Набор задач банка от админа; без `sent_at` — черновик | ✅ |
+| Задача домашки | `homework_tasks` | Задача на своём месте в домашке | ✅ (служебная) |
+| Домашка ученика | `homework_assignments` | Кому отправлена домашка и когда он её сдал | ✅ |
+| Ответ в домашке | `homework_answers` | Единственная попытка ученика на задачу домашки | ✅ |
 | Сессия пробника | `exam_sessions` | Прохождение пробника учеником: срок, баллы | ✅ |
 | Ответ в пробнике | `exam_answers` | Позиция варианта: задача, баллы за неё, ответ ученика | ✅ |
 | Вариант репетитора | `exam_variants` | Сохранённый вариант, собранный репетитором | план |
@@ -23,7 +25,7 @@
 | Полученное достижение | `user_achievements` | Связь ученик ↔ достижение, дата | ✅ (служебная) |
 | Уведомление | `notifications` | Сообщение ученику и статус отправки в Telegram | ✅ |
 
-Итого 17 таблиц (**11 уже в базе**), из них **13 — объекты реального мира**.
+Итого 19 таблиц (**15 уже в базе**), из них **15 — объекты реального мира**.
 
 ## Схема
 
@@ -41,10 +43,14 @@ erDiagram
     users ||--o{ groups : "ведёт (репетитор)"
     groups ||--o{ group_members : ""
     users ||--o{ group_members : "состоит"
-    groups ||--o{ assignments : "получает"
-    assignments ||--o{ assignment_tasks : ""
-    tasks ||--o{ assignment_tasks : ""
-    assignments |o--o{ attempts : "решено в рамках"
+
+    users ||--o{ homeworks : "собирает (админ)"
+    homeworks ||--o{ homework_tasks : "задачи по порядку"
+    tasks ||--o{ homework_tasks : "RESTRICT"
+    homeworks ||--o{ homework_assignments : "отправлена"
+    users ||--o{ homework_assignments : "получает"
+    homework_assignments ||--o{ homework_answers : "одна попытка на задачу"
+    tasks ||--o{ homework_answers : ""
 
     exam_variants ||--o{ variant_tasks : ""
     tasks ||--o{ variant_tasks : ""
@@ -157,7 +163,6 @@ erDiagram
         int id PK
         int user_id FK "ON DELETE CASCADE"
         int task_id FK
-        int assignment_id FK "план, nullable"
         string answer
         bool is_correct
         timestamptz created_at "индекс"
@@ -173,15 +178,33 @@ erDiagram
         int user_id PK, FK
         timestamptz joined_at
     }
-    assignments {
+    homeworks {
         int id PK
-        int group_id FK
         string title
-        timestamptz deadline
+        text comment "nullable; комментарий ученикам"
+        int created_by FK "nullable, ON DELETE SET NULL"
+        timestamptz created_at
+        timestamptz sent_at "nullable; NULL — черновик"
     }
-    assignment_tasks {
-        int assignment_id PK, FK
-        int task_id PK, FK
+    homework_tasks {
+        int homework_id PK, FK "ON DELETE CASCADE"
+        int position PK "1, 2, …"
+        int task_id FK "ON DELETE RESTRICT; UNIQUE (homework_id, task_id)"
+    }
+    homework_assignments {
+        int id PK
+        int homework_id FK "ON DELETE CASCADE; UNIQUE (homework_id, user_id)"
+        int user_id FK "ON DELETE CASCADE"
+        timestamptz assigned_at
+        timestamptz submitted_at "nullable; после сдачи — разборы"
+    }
+    homework_answers {
+        int assignment_id PK, FK "ON DELETE CASCADE"
+        int task_id PK, FK "ON DELETE RESTRICT"
+        string answer
+        bool is_correct
+        jsonb parts "nullable; ответы 19/20/21 и их верность"
+        timestamptz answered_at
     }
     exam_variants {
         int id PK
@@ -262,4 +285,6 @@ erDiagram
 - **Что лежит в Redis, а не в PostgreSQL.** Временное и «быстрое»: ключи входа по QR и коды (TTL 5 минут), счётчик попыток ввода кода, указатель на идущий пробник (TTL = время до конца), блокировка от двойного старта, рейтинг (sorted set). Всё, что в Redis, можно восстановить из базы: срок пробника — `exam_sessions.deadline_at`, рейтинг — пересчётом из `attempts`.
 - **Почему файлы задач на диске, а в базе только описание (`task_files`).** База остаётся лёгкой, файлы отдаются напрямую. Имя на диске случайное: имя от пользователя не попадает в путь, а одинаковые «17.txt» у разных задач не пересекаются. Ученик скачивает файл с исходным именем из `original_name`.
 - **Почему 19–21 — отдельная таблица `task_parts`, а не три задачи.** На ЕГЭ это одна игра и три вопроса к ней. Условие хранится один раз в `tasks`, вопросы — в `task_parts`. В пробнике у каждого вопроса своя позиция (`exam_answers.part_id`), поэтому полный вариант — 27 позиций и 29 баллов, а тестовый балл считается точно.
+- **Домашка: одна попытка — первичный ключ `homework_answers (assignment_id, task_id)`.** Ответ в домашке — это ещё и обычная строка `attempts` (статистика, PTS), поэтому отдельной связи «попытка ↔ домашка» нет. Строка домашки, попытка и PTS пишутся одним коммитом под блокировкой `homework_assignments` (`SELECT … FOR UPDATE`): двойной клик не начислит PTS дважды. Пропуски после сдачи засчитываются неверными только в счёте домашки — в `attempts` их нет.
+- **`homework_tasks.task_id` — `ON DELETE RESTRICT`.** Задачу из домашки нельзя удалить из базы, а в архив можно: архивная задача остаётся в домашке и видна ученику.
 - **Почему вариант пробника хранится как строки `exam_answers`, без отдельной таблицы вариантов.** Вариант собирается случайно для каждого ученика; позиция + задача + ответ — одна строка. Отдельная таблица `exam_variants` понадобится, когда репетитор начнёт собирать варианты вручную.
