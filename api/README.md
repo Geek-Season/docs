@@ -2,7 +2,7 @@
 
 Источник правды — код: FastAPI строит схему OpenAPI из Pydantic-схем.
 Живая документация с кнопками «Try it out»: <http://localhost:8000/docs>.
-Снимок схемы на 22.10.2026 (версия API 0.5.0; текущая — 0.7.0, см. Swagger): [openapi.json](openapi.json) (можно открыть в <https://editor.swagger.io>).
+Снимок схемы на 09.11.2026 (версия API 0.12.0): [openapi.json](openapi.json) (можно открыть в <https://editor.swagger.io>).
 
 Авторизация: заголовок `Authorization: Bearer <JWT>`, токен выдаётся после входа через Telegram.
 🔓 — доступно всем, 🔒 — нужен вход, ◐ — работает для всех, но вошедшему отдаёт больше.
@@ -69,6 +69,23 @@
 | DELETE | `/admin/users/{id}/avatar` | 👑 | Сбросить аватарку (как `/auth/users/{id}/avatar`, но возвращает карточку) | 200, 401, 403, 404 |
 | GET | `/admin/actions` | 👑 | Журнал, новые сверху: `{items: [{id, action, text, details, created_at, admin, user}], next_before}`. Параметры: `user_id`, `admin_id`, `before` (id для следующей страницы), `limit` | 200, 401, 403 |
 
+### Домашки
+
+| Метод | Адрес | | Что делает | Ответы |
+|---|---|---|---|---|
+| GET | `/admin/homework` | 👑 | Все домашки, черновики сверху: `title`, `sent_at` (`null` — черновик), `numbers`, `tasks_count`, `students_count`, `submitted_count` | 200, 401, 403 |
+| POST | `/admin/homework` | 👑 | Черновик `{title, comment, task_ids, user_ids}`: задачи по порядку, без повторов и архивных | 201, 401, 403, 422 |
+| GET | `/admin/homework/{id}` | 👑 | Для конструктора: задачи (`tried_by` — кто из учеников домашки уже решал), ученики | 200, 401, 403, 404 |
+| PATCH | `/admin/homework/{id}` | 👑 | Черновик — любые поля; отправленная — только `title`, `comment` | 200, 401, 403, 404, 409 задачи/учеников после отправки, 422 |
+| POST | `/admin/homework/{id}/send` | 👑 | Отправить (нужны ≥ 1 задача и ≥ 1 ученик) | 200, 401, 403, 404, 409 уже отправлена, 422 |
+| POST | `/admin/homework/{id}/students` | 👑 | Добавить учеников `{user_ids}`; уже назначенные пропускаются | 200, 401, 403, 404, 422 |
+| DELETE | `/admin/homework/{id}` | 👑 | Удалить у всех; попытки и PTS учеников остаются | 204, 401, 403, 404 |
+| GET | `/admin/homework/{id}/results` | 👑 | Таблица «ученик × задача»: `tasks`, `rows` — `student`, `submitted_at`, `answered`, `correct`, `cells` (`{answer, is_correct, parts, answered_at}` или `null`) | 200, 401, 403, 404 |
+| GET | `/admin/homework/tasks` | 👑 | Банк для конструктора: `number`, `q` (поиск по тексту условия), `user_ids` (повторяемый: отметить `tried_by`), `limit`, `offset` → `{total, items}`; без архивных | 200, 401, 403 |
+| POST | `/admin/homework/random` | 👑 | `{number, count, user_ids, exclude_task_ids}` → случайные задачи номера, которых нет в домашке и которые никто из `user_ids` не решал | 200, 401, 403, 422 нет номера |
+
+Задачу из домашки нельзя удалить из базы (`ON DELETE RESTRICT`); `DELETE /tasks/{id}` по-прежнему переносит её в архив, и в домашке она остаётся.
+
 `text` — действие словами без имени админа: «изменил PTS: 0 → 1200», «сбросил калибровку (был ранг: Рекрут)».
 Правки PTS (`pts.set`, `pts.rank`, `pts.recalibrate`, `stats.reset`) — ещё и события пересчёта PTS:
 при пересчёте с нуля (запуск сервера) они повторяются по времени вместе с ответами и не пропадают.
@@ -91,6 +108,19 @@
 | PUT | `/exam/{id}/answers/{позиция}` | 🔒 | Сохранить ответ `{"answer": "22"}` (пустая строка — стереть) | 200, 404, 409 время вышло / завершён, 422 |
 | POST | `/exam/{id}/finish` | 🔒 | Завершить: первичный и тестовый балл (`test_score`, `passed` — порог 40, `university_passed` — 46), разбор; `pts_delta` — PTS за пробник (null у входного); `rank_up`, `calibrated_now` — первый пробник определил ранг; повторный вызов — тот же результат | 200, 404 |
 
+## Домашки
+
+Домашку собирает админ из задач банка и отправляет выбранным ученикам (админу тоже можно). Черновик и чужая домашка — 404.
+На каждую задачу **одна попытка**: верно или нет — сразу, правильный ответ и разбор — только после сдачи.
+Ответ засчитывается как обычный ответ на задачу: строка в `attempts`, PTS, статистика, событие `task.answered`. Строка домашки, попытка и PTS пишутся одним коммитом — двойной клик не начислит PTS дважды.
+
+| Метод | Адрес | | Что делает | Ответы |
+|---|---|---|---|---|
+| GET | `/homework` | 🔒 | Мои домашки: `id`, `title`, `comment`, `numbers` (коды номеров), `total`, `answered`, `correct`, `sent_at`, `submitted_at` (`null` — не сдана). Несданные сверху | 200, 401 |
+| GET | `/homework/{id}` | 🔒 | Домашка: `items` по порядку — `task` (как `GET /tasks/{id}`, архивные тоже), мой `answer`, `is_correct` (`null` — не отвечал), `parts` (ответы 19/20/21), `solution` (ответ и разбор — только после сдачи) | 200, 401, 404 |
+| POST | `/homework/{id}/tasks/{task_id}/answer` | 🔒 | Единственная попытка: `{"answer": "42"}` или `{"answers": {"19": "…", "20": "…", "21": "…"}}`. Ответ: `is_correct`, `parts` (верность частей), `pts_delta`, `pts_repeat`, `rank_up`; без правильного ответа | 200, 401, 404 нет домашки / задачи в ней, 409 уже отвечено / домашка сдана, 422 формат |
+| POST | `/homework/{id}/submit` | 🔒 | Сдать; можно с пропусками — они неверны в счёте домашки, но в `attempts` и PTS не пишутся. Ответ — домашка с разборами | 200, 401, 404, 409 уже сдана |
+
 ## Рейтинг
 
 | Метод | Адрес | | Что делает | Ответы |
@@ -109,7 +139,7 @@
 
 | Событие | Кто публикует | Поля | Очереди |
 |---|---|---|---|
-| `task.answered` | `POST /tasks/{id}/check` (вошедший) | `user_id, task_id, is_correct, first_solve` | achievements |
+| `task.answered` | `POST /tasks/{id}/check` (вошедший), `POST /homework/{id}/tasks/{task_id}/answer` | `user_id, task_id, is_correct, first_solve` | achievements |
 | `exam.finished` | `POST /exam/{id}/finish` | `user_id, session_id, primary_score, max_score, test_score` | achievements, notifications |
 | `achievement.granted` | воркер | `user_id, code, icon, title, description` | notifications |
 
