@@ -108,6 +108,7 @@ erDiagram
         text explanation
         string source "demo | official | approbation | author"
         string source_label "nullable"
+        string external_id UK "nullable; id во внешнем банке, например kompege:31499"
         int difficulty "0..100"
         float rating "nullable; рейтинг задачи для PTS, старт 700 + 10 × difficulty"
         float rating_rd "уверенность"
