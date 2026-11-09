@@ -3,7 +3,7 @@
   "info": {
     "title": "Geek Season",
     "description": "Подготовка к ЕГЭ по информатике: банк номеров, прототипы и проверка ответов.",
-    "version": "0.14.0"
+    "version": "0.15.0"
   },
   "paths": {
     "/auth/telegram/start": {
@@ -765,6 +765,57 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TaskSolution"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks/reorder-kompege": {
+      "post": {
+        "tags": [
+          "Задачи"
+        ],
+        "summary": "Reorder Kompege",
+        "description": "Порядок задач kompege на сайте: «сначала новые» — сверху самая новая задача kompege.\n\nВнутри каждого номера переставляет между задачами kompege их отметки created_at по возрастанию\ntaskId kompege. Ручные задачи, id, решения и PTS не меняются. Повторный вызов ничего не меняет.\nБез dry_run=false в базе ничего не меняется. Настоящий запуск пишется в журнал админки.",
+        "operationId": "reorder_kompege_tasks_reorder_kompege_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dry_run",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "true — только показать, сколько задач сменит место; false — поменять",
+              "default": true,
+              "title": "Dry Run"
+            },
+            "description": "true — только показать, сколько задач сменит место; false — поменять"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReorderResult"
                 }
               }
             }
@@ -4963,6 +5014,61 @@
           "created_at"
         ],
         "title": "RecentAttempt"
+      },
+      "ReorderNumber": {
+        "properties": {
+          "number": {
+            "type": "string",
+            "title": "Number",
+            "description": "Код номера ЕГЭ, например «1» или «19-21»"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Сколько в номере задач kompege (включая архивные)"
+          },
+          "moved": {
+            "type": "integer",
+            "title": "Moved",
+            "description": "Сколько из них сменят (или сменили) место в списке"
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "total",
+          "moved"
+        ],
+        "title": "ReorderNumber"
+      },
+      "ReorderResult": {
+        "properties": {
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run",
+            "description": "true — только посчитано, в базе ничего не изменено"
+          },
+          "moved": {
+            "type": "integer",
+            "title": "Moved",
+            "description": "Сколько задач сменят (или сменили) место всего"
+          },
+          "numbers": {
+            "items": {
+              "$ref": "#/components/schemas/ReorderNumber"
+            },
+            "type": "array",
+            "title": "Numbers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dry_run",
+          "moved",
+          "numbers"
+        ],
+        "title": "ReorderResult",
+        "description": "Итог перестановки порядка задач kompege."
       },
       "SiteRead": {
         "properties": {
