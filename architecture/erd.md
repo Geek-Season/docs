@@ -104,7 +104,7 @@ erDiagram
         int exam_number_id FK
         text statement
         string image_url "nullable"
-        string correct_answer
+        string correct_answer "до 255 символов"
         text explanation
         string source "demo | official | approbation | author"
         string source_label "nullable"
@@ -122,7 +122,7 @@ erDiagram
         int task_id FK "UNIQUE (task_id, number)"
         string number "19 | 20 | 21"
         text question
-        string correct_answer
+        string correct_answer "до 255 символов"
         text explanation
     }
     task_files {
@@ -164,7 +164,7 @@ erDiagram
         int id PK
         int user_id FK "ON DELETE CASCADE"
         int task_id FK
-        string answer
+        string answer "до 255 символов"
         bool is_correct
         timestamptz created_at "индекс"
     }
@@ -202,7 +202,7 @@ erDiagram
     homework_answers {
         int assignment_id PK, FK "ON DELETE CASCADE"
         int task_id PK, FK "ON DELETE RESTRICT"
-        string answer
+        string answer "до 255 символов"
         bool is_correct
         jsonb parts "nullable; ответы 19/20/21 и их верность"
         timestamptz answered_at
@@ -235,7 +235,7 @@ erDiagram
         int task_id FK
         int part_id FK "nullable: вопрос 19/20/21"
         int points "1 или 2 (номера 26, 27)"
-        string answer "nullable"
+        string answer "nullable; до 255 символов"
         bool is_correct "считается при завершении"
         timestamptz updated_at
     }
