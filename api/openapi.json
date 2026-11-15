@@ -3,7 +3,7 @@
   "info": {
     "title": "Geek Season",
     "description": "Подготовка к ЕГЭ по информатике: банк номеров, прототипы и проверка ответов.",
-    "version": "0.15.0"
+    "version": "0.16.0"
   },
   "paths": {
     "/auth/telegram/start": {
@@ -3939,6 +3939,18 @@
               }
             ],
             "title": "Explanation"
+          },
+          "task_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Number",
+            "description": "Текущий код номера для ссылки на задачу; null — архивный номер"
           }
         },
         "type": "object",
@@ -5003,6 +5015,12 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "is_archived": {
+            "type": "boolean",
+            "title": "Is Archived",
+            "description": "Архивная задача: тренировочная ссылка недоступна",
+            "default": false
           }
         },
         "type": "object",
