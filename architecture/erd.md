@@ -29,7 +29,7 @@
 
 ## Схема
 
-Картинка для презентации: [erd.png](erd.png).
+Картинка для презентации: [erd.png](erd.png) (не обновлена для перенумерации 2027; актуальна Mermaid-схема ниже).
 
 ```mermaid
 erDiagram
@@ -95,8 +95,9 @@ erDiagram
     }
     exam_numbers {
         int id PK
-        string code UK "1 … 19-21 … 27"
+        string code UK "1 … 19-21 … 27; legacy-23 — архив"
         string title "тема номера"
+        boolean is_active "доступен для выбора и прогноза"
         int position UK "порядок карточек"
     }
     tasks {
@@ -191,6 +192,8 @@ erDiagram
         int homework_id PK, FK "ON DELETE CASCADE"
         int position PK "1, 2, …"
         int task_id FK "ON DELETE RESTRICT; UNIQUE (homework_id, task_id)"
+        varchar(10) number_code "nullable; снимок исходного номера"
+        varchar(100) number_title "nullable; снимок исходной темы"
     }
     homework_assignments {
         int id PK
@@ -238,6 +241,8 @@ erDiagram
         string answer "nullable; до 255 символов"
         bool is_correct "считается при завершении"
         timestamptz updated_at
+        varchar(10) number_code "nullable; снимок исходного номера"
+        varchar(100) number_title "nullable; снимок исходной темы"
     }
     achievements {
         string code PK "first_solve, streak_7…"
@@ -289,3 +294,18 @@ erDiagram
 - **Домашка: одна попытка — первичный ключ `homework_answers (assignment_id, task_id)`.** Ответ в домашке — это ещё и обычная строка `attempts` (статистика, PTS), поэтому отдельной связи «попытка ↔ домашка» нет. Строка домашки, попытка и PTS пишутся одним коммитом под блокировкой `homework_assignments` (`SELECT … FOR UPDATE`): двойной клик не начислит PTS дважды. Пропуски после сдачи засчитываются неверными только в счёте домашки — в `attempts` их нет.
 - **`homework_tasks.task_id` — `ON DELETE RESTRICT`.** Задачу из домашки нельзя удалить из базы, а в архив можно: архивная задача остаётся в домашке и видна ученику.
 - **Почему вариант пробника хранится как строки `exam_answers`, без отдельной таблицы вариантов.** Вариант собирается случайно для каждого ученика; позиция + задача + ответ — одна строка. Отдельная таблица `exam_variants` понадобится, когда репетитор начнёт собирать варианты вручную.
+
+## Перенумерация демоверсии 2027
+
+Контракт API 0.16.0: `exam_numbers.id` обозначает тему и сохраняется при смене кода.
+PTS в `user_number_ratings` и история `pts_changes` остаются связаны с прежними ID тем.
+Новый №10 получает новый ID. Графы имеют код `legacy-23`, `is_active=false`;
+их задачи — `is_archived=true`. Они остаются в истории и общем PTS, но исключаются
+из прогноза и выбора номера.
+
+`exam_answers.number_code/number_title` и `homework_tasks.number_code/number_title` —
+nullable-снимки на момент включения задачи. При переносе старых данных их заполняют
+до изменения справочника: старые домашки и пробники сохраняют исходные номер и название.
+Для 19–21 снимок позиции пробника хранит номер части, тренировочная карточка — `19-21`.
+Ссылка для повторения определяется текущей темой задачи; архивные графы такой ссылки не имеют.
+Порядок выпуска и проверки: [операционный регламент](../plan/demo-2027-runbook.md).
